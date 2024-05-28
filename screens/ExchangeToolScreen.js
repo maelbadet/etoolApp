@@ -1,21 +1,31 @@
-// screens/ExchangeToolScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+import { View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 
 const ExchangeToolScreen = ({ navigation }) => {
-  const [hasPermission, setHasPermission] = useState(null);
+  const [facing, setFacing] = useState('back');
+  const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [step, setStep] = useState(1);
   const [toolData, setToolData] = useState('');
   const [employeeData, setEmployeeData] = useState('');
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
+  if (!permission) {
+    return <View />;
+  }
+
+  if (!permission.granted) {
+    return (
+        <View style={styles.container}>
+          <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
+          <Button onPress={requestPermission} title="grant permission" />
+        </View>
+    );
+  }
+
+  function toggleCameraFacing() {
+    setFacing(current => (current === 'back' ? 'front' : 'back'));
+  }
 
   const handleBarCodeScanned = ({ type, data }) => {
     if (step === 1) {
@@ -25,33 +35,30 @@ const ExchangeToolScreen = ({ navigation }) => {
     } else {
       setEmployeeData(data);
       setScanned(true);
-      // Envoyer l'information au serveur pour enregistrer l'échange
     }
   };
 
-  if (hasPermission === null) {
-    return <Text>Requesting for camera permission</Text>;
-  }
-  if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
-  }
-
   return (
-    <View style={styles.container}>
-      <BarCodeScanner
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-        style={StyleSheet.absoluteFillObject}
-      />
-      {scanned ? (
-        <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />
-      ) : (
-        <Text>
-          {step === 1 ? 'Scan Tool QR Code' : 'Scan Employee QR Code'}
-        </Text>
-      )}
-      <Text>{toolData}</Text>
-      <Text>{employeeData}</Text>
-    </View>
+      <View style={styles.container}>
+        <CameraView
+            facing={facing}
+            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+        />
+        {scanned ? (
+            <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />
+        ) : (
+            <Text>
+              {step === 1 ? 'Scan Tool QR Code' : 'Scan Employee QR Code'}
+            </Text>
+        )}
+        <Text>{toolData}</Text>
+        <Text>{employeeData}</Text>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
+            <Text style={styles.text}>flip Camera</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
   );
 };
 
@@ -60,6 +67,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: 'transparent',
+    margin: 64,
+  },
+  button: {
+    flex: 1,
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+  },
+  text: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
   },
 });
 

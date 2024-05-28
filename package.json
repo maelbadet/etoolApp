@@ -8,7 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web"
   },
-  "proxy": "https://192.168.1.25:8000", 
+  "proxy": "http://192.168.1.45:8000",
   "dependencies": {
     "@expo/metro-runtime": "~3.2.1",
     "@react-native-async-storage/async-storage": "1.23.1",

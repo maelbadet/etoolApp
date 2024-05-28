@@ -10,7 +10,7 @@ const LoginScreen = ({ navigation }) => {
   const [message, setMessage] = useState('');
 
   const loginUser = () => {
-    axios.post('http://your-api-url/api/login', {
+    axios.post('/api/login', {
       email,
       password
     })
