@@ -14,24 +14,32 @@ const RegisterScreen = ({ navigation }) => {
   const [message, setMessage] = useState('');
 
   const registerUser = () => {
-    axios.post('http://your-api-url/api/register', {
-      email,
-      password,
-      firstName,
-      lastName
-    })
-    .then(response => {
-      const userData = `${response.data.firstName},${response.data.lastName}`;
-      setQrCodeValue(userData);
-      AsyncStorage.setItem('userQrCode', userData);
-      setMessage('User registered successfully');
-      navigation.navigate('Profile');
-    })
-    .catch(error => {
-      setMessage('Error registering user');
-      console.error(error);
-    });
-  };
+		
+		const userData = {
+			email,
+			plainPassword: password,
+			firstName,
+			lastName
+		};
+		
+		axios.post('/api/register', JSON.stringify(userData), {
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+		.then(response => {
+			const userData = `${firstName},${lastName}`;
+			setQrCodeValue(userData);
+			AsyncStorage.setItem('userQrCode', userData);
+			setMessage('User registered successfully');
+			navigation.navigate('Profile');
+		})
+		.catch(error => {
+			console.error(error);
+			setMessage('Error registering user');
+		});
+	};
+	
 
   return (
     <View style={styles.container}>
